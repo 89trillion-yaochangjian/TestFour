@@ -1,109 +1,90 @@
 package service
 
 import (
-	"MongoGift/StructInfo"
 	"MongoGift/internal/dao"
 	"MongoGift/internal/response"
+	"MongoGift/internal/structInfo"
+	"MongoGift/internal/utils"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/golang/protobuf/proto"
 	"time"
 )
-var receiveGiftList StructInfo.ReceiveGiftList
+
+var receiveGiftList structInfo.ReceiveGiftList
+
 //管理后台调用 - 创建礼品码
 
-func CreateGiftCodeService(giftCodeInfo StructInfo.GiftCodeInfo) (string,error) {
-	CodeInfo,err := dao.CreateGiftCodeDao(giftCodeInfo)
-	if err!=nil {
-		err = errors.New("创建礼品码异常")
-		return "",err
+func CreateGiftCodeService(giftCodeInfo structInfo.GiftCodeInfo) (string, *structInfo.Response) {
+	code := utils.GetGiftCodeUtil()
+	giftCodeInfo.Code = code
+	//设置创建时间
+	giftCodeInfo.CreatTime = time.Now()
+	//设置过期时间
+	validPeriod := giftCodeInfo.ValidPeriod
+	jsonCodeInfo, err1 := json.Marshal(giftCodeInfo)
+	if err1 != nil {
+		return "", structInfo.MarshalErr
 	}
-	return CodeInfo,err
+	CodeInfo, err := dao.CreateGiftCodeDao(code, jsonCodeInfo, validPeriod)
+	if err != nil {
+		return "", err
+	}
+	return CodeInfo, err
 }
-
 
 //管理后台调用 - 查询礼品码信息
 
-func GetGiftCodeInfoService(code string) (StructInfo.GiftCodeInfo,error){
+func GetGiftCodeInfoService(code string) (structInfo.GiftCodeInfo, *structInfo.Response) {
 	//根据礼品码查询礼品信息
-	CodeInfo,err := dao.GetGiftCodeInfoDao(code)
-	if err!=nil {
-		err = errors.New("创建礼品码异常")
-		return CodeInfo,err
+	CodeInfo, err := dao.GetGiftCodeInfoDao(code)
+	if err != nil {
+		return CodeInfo, err
 	}
 	//显示礼包类型
-	codeType :=CodeInfo.CodeType
+	codeType := CodeInfo.CodeType
 	if codeType > 0 {
 		CodeInfo.CodeTypeDesc = "不指定用户限制兑换次数"
-	}else if codeType == -1 {
+	} else if codeType == -1 {
 		CodeInfo.CodeTypeDesc = "指定用户一次性消耗"
-	}else if codeType == -2 {
+	} else if codeType == -2 {
 		CodeInfo.CodeTypeDesc = "不限用户不限次数兑换"
 	}
-    return CodeInfo,err
+	return CodeInfo, err
 }
-
 
 //客户端调用 - 验证礼品码
 
-func VerifyFiftCodeService(code string, userName string) ([]byte, error) {
+func VerifyFiftCodeService(code string, user string) ([]byte, error) {
 	Reward := response.GeneralReward{
-		Changes:make(map[uint32]uint64),
-		Balance:make(map[uint32]uint64),
-		Counter:make(map[uint32]uint64),
+		Changes: make(map[uint32]uint64),
+		Balance: make(map[uint32]uint64),
+		Counter: make(map[uint32]uint64),
 	}
 	//获取礼包码信息
-	CodeInfo, GteInfoRrr :=dao.GetGiftCodeInfoDao(code)
+	CodeInfo, GteInfoRrr := dao.GetGiftCodeInfoDao(code)
 	if GteInfoRrr != nil {
-		fmt.Printf("code无效或已过期, err:%v\n", GteInfoRrr)
+		err := errors.New("礼包码无效")
+		return nil, err
 	}
-	userInfo,_ := dao.FindUser(userName)
-	//获取当前客户
+	userInfo, _ := dao.FindUser(user)
+	//根据礼包码，更新用户信息，返回二进制序列
 	switch CodeInfo.CodeType {
 	case -1:
-		if CodeInfo.ReceiveNum == 1||CodeInfo.User!=userName{
-			fmt.Printf("礼包已经领取过")
+		if CodeInfo.ReceiveNum == 1 || CodeInfo.User != user {
+			err := errors.New("礼包码无效")
+			return nil, err
 		}
+		Reward1, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, user)
+		return proto.Marshal(&Reward1)
 	case 0:
-		if CodeInfo.AvailableTimes>CodeInfo.ReceiveNum{
-			//领取数加一
-			CodeInfo.ReceiveNum = CodeInfo.ReceiveNum + 1
-			//用户添加到领取列表，保存到Redis
-			receiveGiftList.ReceiveTime = time.Now()
-			receiveGiftList.ReceiveUser = userName
-			//更新用户奖励数量，保存到Mongodb
-			Reward.Changes[1]=uint64(CodeInfo.ContentList.GoldCoins)
-			Reward.Changes[2]=uint64(CodeInfo.ContentList.Diamonds)
-			userInfo.GoldCoins = CodeInfo.ContentList.GoldCoins
-			userInfo.Diamonds = CodeInfo.ContentList.Diamonds
-			dao.UpdateUser(userInfo)
-			Reward.Balance[1]=uint64(userInfo.GoldCoins+CodeInfo.ContentList.GoldCoins)
-			Reward.Balance[2]=uint64(userInfo.Diamonds+CodeInfo.ContentList.Diamonds)
-			Reward.Counter[1]=uint64(userInfo.GoldCoins+CodeInfo.ContentList.GoldCoins)
-			Reward.Counter[2]=uint64(userInfo.Diamonds+CodeInfo.ContentList.Diamonds)
-			CodeInfo.ReceiveList = append(CodeInfo.ReceiveList,receiveGiftList)
-			dao.VerifyFiftCodeDao(CodeInfo)
-
+		if CodeInfo.AvailableTimes > CodeInfo.ReceiveNum {
+			Reward2, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, user)
+			return proto.Marshal(&Reward2)
 		}
 	case -2:
-		//领取数加一
-		CodeInfo.ReceiveNum = CodeInfo.ReceiveNum + 1
-		//用户添加到领取列表，保存到Redis
-		receiveGiftList.ReceiveTime = time.Now()
-		receiveGiftList.ReceiveUser = userName
-		//更新用户奖励数量，保存到Mongodb
-		//金币ID为1，钻石ID为2
-		Reward.Changes[1]=uint64(CodeInfo.ContentList.GoldCoins)
-		Reward.Changes[2]=uint64(CodeInfo.ContentList.Diamonds)
-		userInfo.GoldCoins = CodeInfo.ContentList.GoldCoins
-		userInfo.Diamonds = CodeInfo.ContentList.Diamonds
-		dao.UpdateUser(userInfo)
-		Reward.Balance[1]=uint64(userInfo.GoldCoins+CodeInfo.ContentList.GoldCoins)
-		Reward.Balance[2]=uint64(userInfo.Diamonds+CodeInfo.ContentList.Diamonds)
-		Reward.Counter[1]=uint64(userInfo.GoldCoins)
-		Reward.Counter[2]=uint64(userInfo.Diamonds)
-		CodeInfo.ReceiveList = append(CodeInfo.ReceiveList,receiveGiftList)
-		dao.VerifyFiftCodeDao(CodeInfo)
+		Reward2, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, user)
+		return proto.Marshal(&Reward2)
 	}
-	return json.Marshal(&Reward)
+	return proto.Marshal(&Reward)
 }

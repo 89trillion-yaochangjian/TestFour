@@ -1,37 +1,33 @@
 package handler
 
 import (
-	"MongoGift/StructInfo"
 	"MongoGift/internal/service"
-	"fmt"
+	"MongoGift/internal/structInfo"
 )
 
 //管理后台调用 - 创建礼品码
 
-func CreateGiftCodeHandler(giftCodeInfo StructInfo.GiftCodeInfo) (StructInfo.MesInfo,error){
-	codeRes,err:= service.CreateGiftCodeService(giftCodeInfo)
+func CreateGiftCodeHandler(giftCodeInfo structInfo.GiftCodeInfo) (string, *structInfo.Response) {
+	codeInfo, err := service.CreateGiftCodeService(giftCodeInfo)
 	if err != nil {
-		return StructInfo.MesInfo{Msg: "创建礼包码失败",ER: err},nil
+		return codeInfo, err
 	}
-	return StructInfo.MesInfo{Msg: "创建礼包码成功",Data: codeRes},nil
+	return codeInfo, nil
 }
-
 
 //管理后台调用 - 查询礼品码信息
 
-func GetFiftCodeInfoHandler(code string) (StructInfo.MesInfo,error){
-	giftCodeInfo,e := service.GetGiftCodeInfoService(code)
-	if e!=nil {
-		fmt.Println("GetFiftCodeInfoHandler")
-		return StructInfo.MesInfo{Msg: "查询礼品码信息失败",ER: e},nil
+func GetFiftCodeInfoHandler(code string) (structInfo.GiftCodeInfo, *structInfo.Response) {
+	giftCodeInfo, err := service.GetGiftCodeInfoService(code)
+	if err != nil {
+		return giftCodeInfo, err
 	}
-	return StructInfo.MesInfo{Msg: "查询礼品码信息成功",Data: giftCodeInfo},nil
+	return giftCodeInfo, nil
 }
-
 
 //客户端调用 - 验证礼品码
 
-func VerifyFiftCodeHandler(code string,user string) ([]byte,error)  {
-	giftCodeInfo, er := service.VerifyFiftCodeService(code,user)
-	return giftCodeInfo,er
+func VerifyFiftCodeHandler(code string, user string) ([]byte, error) {
+	giftCodeInfo, er := service.VerifyFiftCodeService(code, user)
+	return giftCodeInfo, er
 }

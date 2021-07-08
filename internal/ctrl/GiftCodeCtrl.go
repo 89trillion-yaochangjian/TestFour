@@ -1,33 +1,42 @@
 package ctrl
 
 import (
-	"MongoGift/StructInfo"
 	"MongoGift/internal/handler"
 	"MongoGift/internal/response"
+	"MongoGift/internal/structInfo"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
+//管理后台调用 - 创建礼品码
+
 func CreateGiftCode(c *gin.Context) {
 	//获取参数
-	info,err1 := c.GetRawData()
-	if err1 != nil{
-		c.JSON(http.StatusOK,StructInfo.MesInfo{Msg: "获取参数失败",Data: err1})
-	}
-	var giftCodeInfo StructInfo.GiftCodeInfo
-	json.Unmarshal(info,&giftCodeInfo)
-	//var giftCodeInfo = StructInfo.GiftCodeInfo{}
-	//c.ShouldBind(&giftCodeInfo)
-	//调用Handler
-	code,err := handler.CreateGiftCodeHandler(giftCodeInfo)
+	info, err := c.GetRawData()
 	if err != nil {
-		c.JSON(http.StatusOK,StructInfo.MesInfo{Msg: "创建礼包码失败",ER: err})
+		c.JSON(http.StatusBadRequest, structInfo.ParamErr)
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-	})
+	var giftCodeInfo structInfo.GiftCodeInfo
+	json.Unmarshal(info, &giftCodeInfo)
+	// 0--不限定用户，限定领取次数   -1--指定用户一次领取  -2--不限定用户，不限定次数
+	if giftCodeInfo.CodeType != -1 && giftCodeInfo.CodeType != 0 && giftCodeInfo.CodeType != -2 {
+		c.JSON(http.StatusBadRequest, structInfo.CodeTypeErr)
+		return
+	}
+	//指定用户一次领取参数判断
+	if giftCodeInfo.CodeType == -1 && len(giftCodeInfo.User) == 0 {
+		c.JSON(http.StatusBadRequest, structInfo.CodeUserErr)
+		return
+	}
+
+	code, err1 := handler.CreateGiftCodeHandler(giftCodeInfo)
+	if err1 != nil {
+		c.JSON(http.StatusInternalServerError, err1)
+		return
+	}
+	c.JSON(http.StatusOK, structInfo.OK.WithData(code))
 }
 
 //管理后台调用 - 查询礼品码信息
@@ -35,22 +44,38 @@ func CreateGiftCode(c *gin.Context) {
 func GetGiftCodeInfoCtrl(c *gin.Context) {
 	//获取参数
 	code := c.Query("code")
-	info,err := handler.GetFiftCodeInfoHandler(code)
-	if err != nil {
-		c.JSON(http.StatusOK,StructInfo.MesInfo{Msg: "查询礼品码失败",ER: err})
+	if len(code) != 8 {
+		c.JSON(http.StatusBadRequest, structInfo.CodeLenErr)
+		return
 	}
-	c.JSON(http.StatusOK, info)
+	info, err := handler.GetFiftCodeInfoHandler(code)
+	if err != nil {
+		c.JSON(http.StatusOK, err)
+		return
+	}
+	c.JSON(http.StatusOK, structInfo.OK.WithData(info))
 }
+
+//客户端调用 - 验证礼品码
 
 func VerifyGiftCodeCtrl(c *gin.Context) {
 	//获取参数
 	code := c.Query("code")
+	if len(code) != 8 {
+		c.JSON(http.StatusBadRequest, structInfo.CodeLenErr)
+		return
+	}
 	user := c.Query("user")
-	info,e := handler.VerifyFiftCodeHandler(code,user)
-	if e!=nil {
-		fmt.Printf("")
+	if len(user) == 0 {
+		c.JSON(http.StatusBadRequest, structInfo.CodeUserErr)
+		return
+	}
+	info, err := handler.VerifyFiftCodeHandler(code, user)
+	if err != nil {
+		c.JSON(http.StatusOK, structInfo.CodeErr)
+		return
 	}
 	Reward := response.GeneralReward{}
-	json.Unmarshal(info,&Reward)
-	c.JSON(http.StatusOK,info)
+	json.Unmarshal(info, &Reward)
+	c.JSON(http.StatusOK, structInfo.OK.WithData(info))
 }

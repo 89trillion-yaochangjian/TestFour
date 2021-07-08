@@ -1,34 +1,35 @@
 package dao
 
 import (
-	"MongoGift/StructInfo"
+	"MongoGift/internal/structInfo"
 	"MongoGift/internal/utils"
 	"context"
-	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
-	"log"
 )
 
 //登陆
-func FindUser(userName string) (StructInfo.User,error){
+
+func FindUser(userName string) (structInfo.User, *structInfo.Response) {
 	// 创建一个userStruct变量用来接收查询的结果
-	var userStruct StructInfo.User
+	var userStruct structInfo.User
 	//以为用户输入字符串为用户名
-	filter := bson.D{{"user",userName}}
+	filter := bson.D{{"user", userName}}
 	err := utils.MongoCon.FindOne(context.TODO(), filter).Decode(&userStruct)
-	if err!=nil {
-		err = errors.New("mongodb查询用户失败")
-		return userStruct,nil
+	if err != nil {
+		return userStruct, structInfo.LoginUserErr
 	}
 	fmt.Printf("Found a single document: %+v\n", userStruct)
-	return userStruct,nil
+	return userStruct, nil
 }
 
 //更新用户奖励信息
-func UpdateUser(user StructInfo.User) {
+
+func UpdateUser(user structInfo.User, CodeInfo structInfo.GiftCodeInfo) *structInfo.Response {
+	user.GoldCoins = CodeInfo.ContentList.GoldCoins
+	user.Diamonds = CodeInfo.ContentList.Diamonds
 	//以为用户输入字符串为用户名
-	filter := bson.D{{"user",user.User}}
+	filter := bson.D{{"user", user.User}}
 	//更新用户,
 	update := bson.D{
 		{"$inc", bson.D{
@@ -38,19 +39,20 @@ func UpdateUser(user StructInfo.User) {
 	}
 	updateResult, err1 := utils.MongoCon.UpdateOne(context.TODO(), filter, update)
 	if err1 != nil {
-		log.Fatal(err1)
+		return structInfo.DBUpdateErr
 	}
 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
+	return nil
 }
 
-
-
 //注册用户
-func InsertUser(user StructInfo.User)  {
+
+func InsertUser(user structInfo.User) *structInfo.Response {
 
 	insertResult, err := utils.MongoCon.InsertOne(context.TODO(), user)
 	if err != nil {
-		log.Fatal(err)
+		return structInfo.DBInsertErr
 	}
 	fmt.Println("Inserted a single document: ", insertResult)
+	return nil
 }
