@@ -50,7 +50,7 @@ func GetGiftCodeInfoCtrl(c *gin.Context) {
 	}
 	info, err := handler.GetFiftCodeInfoHandler(code)
 	if err != nil {
-		c.JSON(http.StatusOK, err)
+		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 	c.JSON(http.StatusOK, structInfo.OK.WithData(info))
@@ -72,7 +72,7 @@ func VerifyGiftCodeCtrl(c *gin.Context) {
 	}
 	info, err := handler.VerifyFiftCodeHandler(code, user)
 	if err != nil {
-		c.JSON(http.StatusOK, structInfo.CodeErr)
+		c.JSON(http.StatusBadRequest, structInfo.CodeErr)
 		return
 	}
 	Reward := response.GeneralReward{}
