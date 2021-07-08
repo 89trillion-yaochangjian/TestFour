@@ -6,12 +6,6 @@
 ```
 .
 ├── README.md
-├── StructInfo
-│   ├── GiftCodeInfo.go
-│   ├── GiftContentList.go
-│   ├── ReceiveGiftList.go
-│   ├── Uer.go
-│   └── ginResult.go
 ├── __pycache__
 │   └── locustfile.cpython-39.pyc
 ├── app
@@ -39,6 +33,12 @@
 │   │   ├── GiftCodeService_test.go
 │   │   ├── UserServer.go
 │   │   └── UserServer_test.go
+│   ├── structInfo
+│   │   ├── GiftCodeInfo.go
+│   │   ├── GiftContentList.go
+│   │   ├── ReceiveGiftList.go
+│   │   ├── Uer.go
+│   │   └── ginResult.go
 │   └── utils
 │       ├── CreateUID.go
 │       ├── GetRandomString.go
@@ -47,6 +47,7 @@
 ├── locustFile.py
 ├── report.html
 └── 流程图.png
+
 
 ```
 
