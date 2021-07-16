@@ -28,7 +28,7 @@ func MongoClient() *status.Response {
 	if err != nil {
 		return status.MongoDBErr
 	}
-	MongoCon = client.Database("gift").Collection("user")
+	MongoCon = client.Database("gift").Collection("login")
 	fmt.Println("Connected to MongoDB!")
 	return nil
 }

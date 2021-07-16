@@ -7,7 +7,6 @@ import (
 
 func GiftCodeRouter() {
 	r := gin.Default()
-
 	r.POST("/CreateGiftCode", ctrl.CreateGiftCode)
 	r.GET("/GetGiftCodeInfo", ctrl.GetGiftCodeInfoCtrl)
 	r.GET("/VerifyGiftCode", ctrl.VerifyGiftCodeCtrl)

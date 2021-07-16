@@ -42,7 +42,7 @@ func GetGiftCodeInfoDao(code string) (model.GiftCodeInfo, *status.Response) {
 
 //客户端调用 - 验证礼品码
 
-func VerifyFiftCodeDao(giftCodeInfo model.GiftCodeInfo, userInfo model.User, user string) (response.GeneralReward, *status.Response) {
+func VerifyFiftCodeDao(giftCodeInfo model.GiftCodeInfo, userInfo model.User, Uid string) (response.GeneralReward, *status.Response) {
 	Reward := response.GeneralReward{
 		Changes: make(map[uint32]uint64),
 		Balance: make(map[uint32]uint64),
@@ -65,7 +65,7 @@ func VerifyFiftCodeDao(giftCodeInfo model.GiftCodeInfo, userInfo model.User, use
 	giftCodeInfo.ReceiveNum = giftCodeInfo.ReceiveNum + 1
 	//用户添加到领取列表，保存到Redis
 	receiveGiftList.ReceiveTime = time.Now()
-	receiveGiftList.ReceiveUser = user
+	receiveGiftList.ReceiveUser = Uid
 	giftCodeInfo.ReceiveList = append(giftCodeInfo.ReceiveList, receiveGiftList)
 	code := giftCodeInfo.Code
 	jsonCodeInfo, err1 := json.Marshal(giftCodeInfo)

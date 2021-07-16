@@ -56,7 +56,7 @@ func GetGiftCodeInfoService(code string) (model.GiftCodeInfo, *status.Response) 
 
 //客户端调用 - 验证礼品码
 
-func VerifyFiftCodeService(code string, user string) ([]byte, error) {
+func VerifyFiftCodeService(code string, Uid string) ([]byte, error) {
 	Reward := response.GeneralReward{
 		Changes: make(map[uint32]uint64),
 		Balance: make(map[uint32]uint64),
@@ -68,23 +68,27 @@ func VerifyFiftCodeService(code string, user string) ([]byte, error) {
 		err := errors.New("礼包码无效")
 		return nil, err
 	}
-	userInfo, _ := dao.FindUser(user)
+	userInfo, _ := dao.FindUser(Uid)
 	//根据礼包码，更新用户信息，返回二进制序列
 	switch CodeInfo.CodeType {
 	case -1:
-		if CodeInfo.ReceiveNum == 1 || CodeInfo.User != user {
-			err := errors.New("礼包码无效")
+		if CodeInfo.User != Uid {
+			err := errors.New("指定用户领取")
 			return nil, err
 		}
-		Reward1, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, user)
+		if CodeInfo.ReceiveNum == 1 {
+			err := errors.New("您已领取，不要重复领取")
+			return nil, err
+		}
+		Reward1, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, Uid)
 		return proto.Marshal(&Reward1)
 	case 0:
 		if CodeInfo.AvailableTimes > CodeInfo.ReceiveNum {
-			Reward2, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, user)
+			Reward2, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, Uid)
 			return proto.Marshal(&Reward2)
 		}
 	case -2:
-		Reward2, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, user)
+		Reward2, _ := dao.VerifyFiftCodeDao(CodeInfo, userInfo, Uid)
 		return proto.Marshal(&Reward2)
 	}
 	return proto.Marshal(&Reward)

@@ -28,7 +28,7 @@ func CreateGiftCode(c *gin.Context) {
 	}
 	//指定用户一次领取参数判断
 	if giftCodeInfo.CodeType == -1 && len(giftCodeInfo.User) == 0 {
-		c.JSON(http.StatusBadRequest, status.CodeUserErr)
+		c.JSON(http.StatusBadRequest, status.CodeUIDErr)
 		return
 	}
 
@@ -66,12 +66,12 @@ func VerifyGiftCodeCtrl(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, status.CodeLenErr)
 		return
 	}
-	user := c.Query("user")
-	if len(user) == 0 {
-		c.JSON(http.StatusBadRequest, status.CodeUserErr)
+	Uid := c.Query("uid")
+	if len(Uid) == 0 {
+		c.JSON(http.StatusBadRequest, status.CodeUIDErr)
 		return
 	}
-	info, err := service.VerifyFiftCodeService(code, user)
+	info, err := service.VerifyFiftCodeService(code, Uid)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, status.CodeErr)
 		return

@@ -11,16 +11,20 @@ import (
 
 //登陆
 
-func FindUser(userName string) (model.User, *status.Response) {
+func FindUser(UId string) (model.User, *status.Response) {
 	// 创建一个userStruct变量用来接收查询的结果
 	var userStruct model.User
 	//以为用户输入字符串为用户名
-	filter := bson.D{{"user", userName}}
-	err := utils.MongoCon.FindOne(context.TODO(), filter).Decode(&userStruct)
-	if err != nil {
-		return userStruct, status.LoginUserErr
+	filter := bson.D{{"uid", UId}}
+	utils.MongoCon.FindOne(context.TODO(), filter).Decode(&userStruct)
+	if userStruct.UID == "" {
+		//Uid为空则注册用户
+		userStruct.UID = utils.CreateUID()
+		err1 := InsertUser(userStruct)
+		if err1 != nil {
+			return userStruct, err1
+		}
 	}
-	fmt.Printf("Found a single document: %+v\n", userStruct)
 	return userStruct, nil
 }
 
@@ -30,7 +34,7 @@ func UpdateUser(user model.User, CodeInfo model.GiftCodeInfo) *status.Response {
 	user.GoldCoins = CodeInfo.ContentList.GoldCoins
 	user.Diamonds = CodeInfo.ContentList.Diamonds
 	//以为用户输入字符串为用户名
-	filter := bson.D{{"user", user.User}}
+	filter := bson.D{{"uid", user.UID}}
 	//更新用户,
 	update := bson.D{
 		{"$inc", bson.D{
