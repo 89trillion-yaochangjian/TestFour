@@ -2,8 +2,9 @@ package service
 
 import (
 	"MongoGift/internal/dao"
+	"MongoGift/internal/model"
 	"MongoGift/internal/response"
-	"MongoGift/internal/structInfo"
+	"MongoGift/internal/status"
 	"MongoGift/internal/utils"
 	"encoding/json"
 	"errors"
@@ -11,11 +12,11 @@ import (
 	"time"
 )
 
-var receiveGiftList structInfo.ReceiveGiftList
+var receiveGiftList model.ReceiveGiftList
 
 //管理后台调用 - 创建礼品码
 
-func CreateGiftCodeService(giftCodeInfo structInfo.GiftCodeInfo) (string, *structInfo.Response) {
+func CreateGiftCodeService(giftCodeInfo model.GiftCodeInfo) (string, *status.Response) {
 	code := utils.GetGiftCodeUtil()
 	giftCodeInfo.Code = code
 	//设置创建时间
@@ -24,7 +25,7 @@ func CreateGiftCodeService(giftCodeInfo structInfo.GiftCodeInfo) (string, *struc
 	validPeriod := giftCodeInfo.ValidPeriod
 	jsonCodeInfo, err1 := json.Marshal(giftCodeInfo)
 	if err1 != nil {
-		return "", structInfo.MarshalErr
+		return "", status.MarshalErr
 	}
 	CodeInfo, err := dao.CreateGiftCodeDao(code, jsonCodeInfo, validPeriod)
 	if err != nil {
@@ -35,7 +36,7 @@ func CreateGiftCodeService(giftCodeInfo structInfo.GiftCodeInfo) (string, *struc
 
 //管理后台调用 - 查询礼品码信息
 
-func GetGiftCodeInfoService(code string) (structInfo.GiftCodeInfo, *structInfo.Response) {
+func GetGiftCodeInfoService(code string) (model.GiftCodeInfo, *status.Response) {
 	//根据礼品码查询礼品信息
 	CodeInfo, err := dao.GetGiftCodeInfoDao(code)
 	if err != nil {

@@ -2,13 +2,14 @@ package service
 
 import (
 	"MongoGift/internal/dao"
-	"MongoGift/internal/structInfo"
+	"MongoGift/internal/model"
+	"MongoGift/internal/status"
 	"MongoGift/internal/utils"
 )
 
 //登陆，返回用户信息
 
-func UserLoginServer(str string) (structInfo.User, *structInfo.Response) {
+func UserLoginServer(str string) (model.User, *status.Response) {
 	//根据UID判断是否存在该玩家
 	userInfo, err := dao.FindUser(str)
 	if err != nil {

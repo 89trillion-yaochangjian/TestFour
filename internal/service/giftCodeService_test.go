@@ -1,8 +1,8 @@
 package service
 
 import (
+	structInfo2 "MongoGift/internal/model"
 	"MongoGift/internal/response"
-	structInfo2 "MongoGift/internal/structInfo"
 	"MongoGift/internal/utils"
 	"fmt"
 	"github.com/golang/protobuf/proto"

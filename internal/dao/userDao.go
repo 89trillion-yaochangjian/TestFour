@@ -1,7 +1,8 @@
 package dao
 
 import (
-	"MongoGift/internal/structInfo"
+	"MongoGift/internal/model"
+	"MongoGift/internal/status"
 	"MongoGift/internal/utils"
 	"context"
 	"fmt"
@@ -10,14 +11,14 @@ import (
 
 //登陆
 
-func FindUser(userName string) (structInfo.User, *structInfo.Response) {
+func FindUser(userName string) (model.User, *status.Response) {
 	// 创建一个userStruct变量用来接收查询的结果
-	var userStruct structInfo.User
+	var userStruct model.User
 	//以为用户输入字符串为用户名
 	filter := bson.D{{"user", userName}}
 	err := utils.MongoCon.FindOne(context.TODO(), filter).Decode(&userStruct)
 	if err != nil {
-		return userStruct, structInfo.LoginUserErr
+		return userStruct, status.LoginUserErr
 	}
 	fmt.Printf("Found a single document: %+v\n", userStruct)
 	return userStruct, nil
@@ -25,7 +26,7 @@ func FindUser(userName string) (structInfo.User, *structInfo.Response) {
 
 //更新用户奖励信息
 
-func UpdateUser(user structInfo.User, CodeInfo structInfo.GiftCodeInfo) *structInfo.Response {
+func UpdateUser(user model.User, CodeInfo model.GiftCodeInfo) *status.Response {
 	user.GoldCoins = CodeInfo.ContentList.GoldCoins
 	user.Diamonds = CodeInfo.ContentList.Diamonds
 	//以为用户输入字符串为用户名
@@ -39,7 +40,7 @@ func UpdateUser(user structInfo.User, CodeInfo structInfo.GiftCodeInfo) *structI
 	}
 	updateResult, err1 := utils.MongoCon.UpdateOne(context.TODO(), filter, update)
 	if err1 != nil {
-		return structInfo.DBUpdateErr
+		return status.DBUpdateErr
 	}
 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
 	return nil
@@ -47,11 +48,11 @@ func UpdateUser(user structInfo.User, CodeInfo structInfo.GiftCodeInfo) *structI
 
 //注册用户
 
-func InsertUser(user structInfo.User) *structInfo.Response {
+func InsertUser(user model.User) *status.Response {
 
 	insertResult, err := utils.MongoCon.InsertOne(context.TODO(), user)
 	if err != nil {
-		return structInfo.DBInsertErr
+		return status.DBInsertErr
 	}
 	fmt.Println("Inserted a single document: ", insertResult)
 	return nil

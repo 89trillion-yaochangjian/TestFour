@@ -2,7 +2,7 @@ package utils
 
 // 声明一个全局的rdb变量
 import (
-	"MongoGift/internal/structInfo"
+	"MongoGift/internal/status"
 	"github.com/go-redis/redis"
 )
 
@@ -10,7 +10,7 @@ var Rdb *redis.Client
 
 // 初始化连接
 
-func InitClient() *structInfo.Response {
+func InitClient() *status.Response {
 	Rdb = redis.NewClient(&redis.Options{
 		Addr:     "127.0.0.1:6379",
 		Password: "", // no password set
@@ -19,7 +19,7 @@ func InitClient() *structInfo.Response {
 
 	_, err := Rdb.Ping().Result()
 	if err != nil {
-		return structInfo.MarshalErr
+		return status.MarshalErr
 	}
 	return nil
 }

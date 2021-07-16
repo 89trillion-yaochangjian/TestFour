@@ -8,6 +8,6 @@ import (
 func TestUserLoginServer(t *testing.T) {
 	utils.InitClient()
 	utils.MongoClient()
-	ContentInfo,err:= UserLoginServer("tom")
-	t.Log(ContentInfo,err)
+	ContentInfo, err := UserLoginServer("tom")
+	t.Log(ContentInfo, err)
 }

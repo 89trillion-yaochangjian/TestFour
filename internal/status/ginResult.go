@@ -1,4 +1,4 @@
-package structInfo
+package status
 
 var (
 	OK  = response(200, "OK")    // 通用成功

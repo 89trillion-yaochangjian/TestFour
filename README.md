@@ -15,37 +15,36 @@
 ├── go.sum
 ├── internal
 │   ├── ctrl
-│   │   ├── GiftCodeCtrl.go
-│   │   └── UserCtrl.go
+│   │   ├── giftCodeCtrl.go
+│   │   └── userCtrl.go
 │   ├── dao
-│   │   ├── GiftCodeDao.go
-│   │   └── UserDao.go
-│   ├── handler
-│   │   ├── GiftCodeHandler.go
-│   │   └── UserHandler.go
+│   │   ├── giftCodeDao.go
+│   │   └── userDao.go
+│   ├── model
+│   │   ├── giftCodeInfo.go
+│   │   ├── giftContentList.go
+│   │   ├── receiveGiftList.go
+│   │   └── uer.go
 │   ├── response
-│   │   ├── GeneralReward.pb.go
-│   │   └── GeneralReward.proto
+│   │   ├── generalReward.pb.go
+│   │   └── generalReward.proto
 │   ├── router
-│   │   └── GiftCodeRouter.go
+│   │   └── giftCodeRouter.go
 │   ├── service
-│   │   ├── GiftCodeService.go
-│   │   ├── GiftCodeService_test.go
-│   │   ├── UserServer.go
-│   │   └── UserServer_test.go
-│   ├── structInfo
-│   │   ├── GiftCodeInfo.go
-│   │   ├── GiftContentList.go
-│   │   ├── ReceiveGiftList.go
-│   │   ├── Uer.go
+│   │   ├── giftCodeService.go
+│   │   ├── giftCodeService_test.go
+│   │   ├── userServer.go
+│   │   └── userServer_test.go
+│   ├── status
 │   │   └── ginResult.go
+│   ├── test
+│   │   ├── locustFile.py
+│   │   └── report.html
 │   └── utils
-│       ├── CreateUID.go
-│       ├── GetRandomString.go
-│       ├── MongoClient.go
-│       └── initClient.go
-├── locustFile.py
-├── report.html
+│       ├── createUID.go
+│       ├── getRandomString.go
+│       ├── initClient.go
+│       └── mongoClient.go
 └── 流程图.png
 
 
@@ -58,13 +57,14 @@
 |层|文件夹|主要职责|调用关系|其他说明|
 | ------------ | ------------ | ------------ | ------------ | ------------ |
 |应用层 |app/http/main.go  |服务器启动 |调用路由层工具层   |不可同层调用
-|路由层 |internal/router/GiftCodeRouter.go  |路由转发 | 调用工具层 控制层 被应用层   |不可同层调用
-|控制层 |internal/ctrl/GiftCodeCtrl.go  |请求参数处理，响应 | 调用handler层 被路由层调用    |不可同层调用
-|handler层 |internal/handler/GiftCodeHandler.go  |处理具体业务 | 调用路由层service层，被控制层调用    |不可同层调用
-|service层   |internal/service/GiftCodeService.go  |处理业务逻辑 | 调用工具层，被handler层调用    |可同层调用
-|dao层   |internal/dao  |数据库操作 | 调用工具层，被service层调用    |可同层调用
-|工具类   |internal/utilso  |数据库链接，生成UID，生成礼包码 | 被dao层，service层调用    |不可同层调用
-| struct|StructInfo  |结构体 | 被service层 、handler层、控制层调用   |不可同层调用
+|路由层 |internal/router/  |路由转发 | 调用工具层 控制层 被应用层   |不可同层调用
+|控制层 |internal/ctrl/ |请求参数处理，响应 | 调用service层，model层，status，response层 被路由层调用    |不可同层调用
+|service层   |internal/service/GiftCodeService.go  |处理业务逻辑 | 调用工具层，被控制层调用   |可同层调用
+|dao层   |internal/dao  |数据库操作，存储数据 | 调用工具层，model，response层，被service层调用    |可同层调用
+|工具类   |internal/utils  |数据库链接，生成UID，生成礼包码 | 被dao层，service层调用    |不可同层调用
+|model层   |internal/model  |定义结构题 | 被dao层 service，控制层调用    |不可同层调用
+|response层   |internal/response  |protobuf | 被dao层 service，response层调用    |不可同层调用
+|status层 |internal/status  |定义异常信息 | 被控制层，service，dao层调用    |不可同层调用
 
 #### 4.存储设计
 
