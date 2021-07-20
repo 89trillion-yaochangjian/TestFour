@@ -165,13 +165,7 @@ uid             string                  用户uid
 {
     "code": 200,
     "msg": "OK",
-    "data": {
-        "gold_coins": 888,
-        "diamonds": 999,
-        "props": 0,
-        "heroes": 0,
-        "creeps": 0
-    }
+    "data": "GgUIARD4BhoFCAIQ5wciBQgBEPANIgUIAhDODyoFCAEQ8A0qBQgCEM4P"
 }
 
 响应状态码：

@@ -30,6 +30,9 @@ func FindUser(UId string) (User, *status.Response) {
 //更新用户奖励信息
 
 func UpdateUser(user User, CodeInfo GiftCodeInfo) *status.Response {
+	if utils.MongoCon == nil {
+		return status.MongoDBErr
+	}
 	user.GoldCoins = CodeInfo.ContentList.GoldCoins
 	user.Diamonds = CodeInfo.ContentList.Diamonds
 	//以为用户输入字符串为用户名

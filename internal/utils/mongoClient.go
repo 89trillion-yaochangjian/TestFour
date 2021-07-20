@@ -19,6 +19,7 @@ func MongoClient() *status.Response {
 	// 连接到MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
+		fmt.Println(status.MongoDBErr)
 		return status.MongoDBErr
 	}
 
@@ -26,6 +27,7 @@ func MongoClient() *status.Response {
 	// 检查连接
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
+		fmt.Println(status.MongoDBErr)
 		return status.MongoDBErr
 	}
 	MongoCon = client.Database("gift").Collection("login")
