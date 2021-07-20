@@ -141,10 +141,10 @@ uid      string      string
     }
 }
 响应状态码：
-状态码		说明
-200			通用成功
+状态码		 说明
+200             通用成功
 1007		请输用户Uid
-1016		 mongdb数据库异常
+1016	        mongdb数据库异常
 ```
 ```
 2.接口描述：
@@ -157,9 +157,9 @@ Http Get
 http://127.0.0.1:8080/GetGiftCodeInfo 
 
 请求参数：
-字段		 类型			描述
-code		 string		礼品码
-uid			string		用户uid
+字段              类型			描述
+code	        string                  礼品码
+uid             string                  用户uid
 
 请求响应：
 {
@@ -176,7 +176,7 @@ uid			string		用户uid
 
 响应状态码：
 状态码 			说明
-200				通用成功
+200	                通用成功
 1003			礼包码输入错误
 1007			请输用户Uid 
 1017			礼包码无效
