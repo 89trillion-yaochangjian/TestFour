@@ -1,7 +1,6 @@
-package dao
+package model
 
 import (
-	"MongoGift/internal/model"
 	"MongoGift/internal/status"
 	"MongoGift/internal/utils"
 	"context"
@@ -11,9 +10,9 @@ import (
 
 //登陆
 
-func FindUser(UId string) (model.User, *status.Response) {
+func FindUser(UId string) (User, *status.Response) {
 	// 创建一个userStruct变量用来接收查询的结果
-	var userStruct model.User
+	var userStruct User
 	//以为用户输入字符串为用户名
 	filter := bson.D{{"uid", UId}}
 	utils.MongoCon.FindOne(context.TODO(), filter).Decode(&userStruct)
@@ -30,7 +29,7 @@ func FindUser(UId string) (model.User, *status.Response) {
 
 //更新用户奖励信息
 
-func UpdateUser(user model.User, CodeInfo model.GiftCodeInfo) *status.Response {
+func UpdateUser(user User, CodeInfo GiftCodeInfo) *status.Response {
 	user.GoldCoins = CodeInfo.ContentList.GoldCoins
 	user.Diamonds = CodeInfo.ContentList.Diamonds
 	//以为用户输入字符串为用户名
@@ -52,7 +51,7 @@ func UpdateUser(user model.User, CodeInfo model.GiftCodeInfo) *status.Response {
 
 //注册用户
 
-func InsertUser(user model.User) *status.Response {
+func InsertUser(user User) *status.Response {
 
 	insertResult, err := utils.MongoCon.InsertOne(context.TODO(), user)
 	if err != nil {

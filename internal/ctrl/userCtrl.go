@@ -13,7 +13,7 @@ func UserLoginCtrl(c *gin.Context) {
 	//获取参数
 	UId := c.Query("uid")
 	if len(UId) == 0 {
-		c.JSON(http.StatusBadRequest, status.StringErr)
+		c.JSON(http.StatusBadRequest, status.CodeUIDErr)
 		return
 	}
 	info, err := service.UserLoginServer(UId)

@@ -24,7 +24,7 @@ var (
 	MongoDBErr    = response(1013, "MongoDB链接异常")
 	RedisConErr   = response(1014, "redis链接异常")
 	DBUpdateErr   = response(1015, "用户数据更新异常")
-	DBInsertErr   = response(1016, "用户新建数据异常")
+	DBInsertErr   = response(1016, "mongdb数据库异常")
 	CodeErr       = response(1017, "礼包码无效")
 	UserADD       = response(1018, "注册成功")
 )

@@ -1,7 +1,6 @@
-package dao
+package model
 
 import (
-	"MongoGift/internal/model"
 	"MongoGift/internal/response"
 	"MongoGift/internal/status"
 	"MongoGift/internal/utils"
@@ -9,7 +8,7 @@ import (
 	"time"
 )
 
-var receiveGiftList model.ReceiveGiftList
+var receiveGiftList ReceiveGiftList
 
 //管理后台调用 - 创建礼品码
 
@@ -24,9 +23,9 @@ func CreateGiftCodeDao(code string, jsonCodeInfo []byte, validPeriod int) (strin
 
 //管理后台调用 - 查询礼品码信息
 
-func GetGiftCodeInfoDao(code string) (model.GiftCodeInfo, *status.Response) {
+func GetGiftCodeInfoDao(code string) (GiftCodeInfo, *status.Response) {
 
-	CodeInfo := model.GiftCodeInfo{}
+	CodeInfo := GiftCodeInfo{}
 	//根据礼品码查询礼品信息
 	JsonCodeInfo, err1 := utils.Rdb.Get(code).Result()
 	if err1 != nil {
@@ -42,7 +41,7 @@ func GetGiftCodeInfoDao(code string) (model.GiftCodeInfo, *status.Response) {
 
 //客户端调用 - 验证礼品码
 
-func VerifyFiftCodeDao(giftCodeInfo model.GiftCodeInfo, userInfo model.User, Uid string) (response.GeneralReward, *status.Response) {
+func VerifyFiftCodeDao(giftCodeInfo GiftCodeInfo, userInfo User, Uid string) (response.GeneralReward, *status.Response) {
 	Reward := response.GeneralReward{
 		Changes: make(map[uint32]uint64),
 		Balance: make(map[uint32]uint64),
@@ -59,10 +58,10 @@ func VerifyFiftCodeDao(giftCodeInfo model.GiftCodeInfo, userInfo model.User, Uid
 	Reward.Balance[2] = uint64(userInfo.Diamonds + giftCodeInfo.ContentList.Diamonds)
 	Reward.Counter[1] = uint64(userInfo.GoldCoins + giftCodeInfo.ContentList.GoldCoins)
 	Reward.Counter[2] = uint64(userInfo.Diamonds + giftCodeInfo.ContentList.Diamonds)
-	giftCodeInfo.ReceiveList = append(giftCodeInfo.ReceiveList, receiveGiftList)
-
-	//领取数加一
-	giftCodeInfo.ReceiveNum = giftCodeInfo.ReceiveNum + 1
+	//giftCodeInfo.ReceiveList = append(giftCodeInfo.ReceiveList, receiveGiftList)
+	//领取数加一,单独存储key
+	count := utils.Rdb.Incr(giftCodeInfo.Code + "count")
+	giftCodeInfo.ReceiveNum = count.Val()
 	//用户添加到领取列表，保存到Redis
 	receiveGiftList.ReceiveTime = time.Now()
 	receiveGiftList.ReceiveUser = Uid
