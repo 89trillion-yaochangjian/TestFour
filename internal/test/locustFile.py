@@ -22,12 +22,12 @@ class QuickstartUser(HttpUser):
 
     @task
     def GetGiftCodeInfo(self):
-        self.client.get("GetGiftCodeInfo?code=G1RWHLQA")
+        self.client.get("GetGiftCodeInfo?code=MT4MG7XZ")
 
     @task
     def VerifyGiftCode(self):
-        self.client.get("VerifyGiftCode?code=IW4G42H6&user=ss")
+        self.client.get("VerifyGiftCode?code=MT4MG7XZ&uid=50FYYX")
 
     @task
     def UserLoginServer(self):
-        self.client.get("UserLoginCtrl?str=ss")
+        self.client.get("UserLoginCtrl?uid=50FYYX")
