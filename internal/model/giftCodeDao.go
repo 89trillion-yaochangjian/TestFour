@@ -46,10 +46,6 @@ func VerifyFiftCodeDao(giftCodeInfo GiftCodeInfo, userInfo User, Uid string) (re
 	pipe := config.Rdb.TxPipeline()
 	defer pipe.Close()
 	jsonCodeInfo, err1 := json.Marshal(giftCodeInfo)
-	Reward, err0 := UpdateUser(userInfo, giftCodeInfo)
-	if err0 != nil {
-		return Reward, err0
-	}
 	//领取数加一,单独存储key
 	count := config.Rdb.Incr(giftCodeInfo.Code + "counts")
 	giftCodeInfo.ReceiveNum = count.Val()
@@ -59,13 +55,17 @@ func VerifyFiftCodeDao(giftCodeInfo GiftCodeInfo, userInfo User, Uid string) (re
 	giftCodeInfo.ReceiveList = append(giftCodeInfo.ReceiveList, receiveGiftList)
 	code := giftCodeInfo.Code
 	if err1 != nil {
-		return Reward, status.MarshalErr
+		return response.GeneralReward{}, status.MarshalErr
 	}
 	// 通过Exec函数提交redis事务
 	pipe.Set(code, jsonCodeInfo, config.Rdb.TTL(code).Val())
 	_, err := pipe.Exec()
 	if err != nil {
-		return Reward, status.RedisErr
+		return response.GeneralReward{}, status.RedisErr
+	}
+	Reward, err0 := UpdateUser(userInfo, giftCodeInfo)
+	if err0 != nil {
+		return Reward, err0
 	}
 	return Reward, nil
 }

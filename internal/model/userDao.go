@@ -49,13 +49,14 @@ func UpdateUser(user User, CodeInfo GiftCodeInfo) (response.GeneralReward, *stat
 	Reward.Balance[2] = uint64(user.Diamonds + CodeInfo.ContentList.Diamonds)
 	Reward.Counter[1] = uint64(user.GoldCoins + CodeInfo.ContentList.GoldCoins)
 	Reward.Counter[2] = uint64(user.Diamonds + CodeInfo.ContentList.Diamonds)
-	//以为用户输入字符串为用户唯一识别
 
+	//开启是事务
 	err := config.Session.StartTransaction()
 	if err != nil {
-		return response.GeneralReward{}, nil
+		return Reward, status.MongoDBTractionErr
 	}
 	monCtx := mongo.NewSessionContext(context.TODO(), config.Session)
+	//以为用户输入字符串为用户唯一识别
 	filter := bson.D{{"uid", user.UID}}
 	//更新用户,
 	update := bson.D{
