@@ -1,16 +1,16 @@
 package service
 
 import (
+	"MongoGift/internal/config"
 	structInfo2 "MongoGift/internal/model"
 	"MongoGift/internal/response"
-	"MongoGift/internal/utils"
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	"testing"
 )
 
 func TestCreateGiftCodeService(t *testing.T) {
-	utils.InitClient()
+	config.InitClient()
 	giftContent := structInfo2.GiftContentList{
 		GoldCoins: 111,
 		Diamonds:  222,
@@ -30,15 +30,15 @@ func TestCreateGiftCodeService(t *testing.T) {
 }
 
 func TestGetGiftCodeInfoService(t *testing.T) {
-	utils.InitClient()
+	config.InitClient()
 	GiftInfo, _ := GetGiftCodeInfoService("JI310XOC")
 	t.Log(GiftInfo)
 }
 
 func TestVerifyFiftCodeService(t *testing.T) {
-	utils.InitClient()
-	utils.MongoClient()
-	ContentInfo, err := VerifyFiftCodeService("VMB5WI1Z", "qw22")
+	config.InitClient()
+	config.MongoClient()
+	ContentInfo, err := VerifyFiftCodeService("KTWNWP1D", "H7SKR2")
 	Reward := response.GeneralReward{}
 	proto.Unmarshal(ContentInfo, &Reward)
 	fmt.Println(Reward)

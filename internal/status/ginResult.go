@@ -27,6 +27,8 @@ var (
 	DBInsertErr   = response(1016, "mongdb数据库异常")
 	CodeErr       = response(1017, "礼包码无效")
 	UserADD       = response(1018, "注册成功")
+	OrderUser     = response(1019, "指定用户领取")
+	GetCodeSecond = response(1020, "您已领取，不要重复领取")
 )
 
 type Response struct {

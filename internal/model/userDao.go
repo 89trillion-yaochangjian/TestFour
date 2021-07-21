@@ -1,11 +1,14 @@
 package model
 
 import (
+	"MongoGift/internal/config"
+	"MongoGift/internal/response"
 	"MongoGift/internal/status"
 	"MongoGift/internal/utils"
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 //登陆
@@ -15,7 +18,7 @@ func FindUser(UId string) (User, *status.Response) {
 	var userStruct User
 	//以为用户输入字符串为用户名
 	filter := bson.D{{"uid", UId}}
-	utils.MongoCon.FindOne(context.TODO(), filter).Decode(&userStruct)
+	config.MongoCon.FindOne(context.TODO(), filter).Decode(&userStruct)
 	if userStruct.UID == "" {
 		//Uid为空则注册用户
 		userStruct.UID = utils.CreateUID()
@@ -29,34 +32,52 @@ func FindUser(UId string) (User, *status.Response) {
 
 //更新用户奖励信息
 
-func UpdateUser(user User, CodeInfo GiftCodeInfo) *status.Response {
-	if utils.MongoCon == nil {
-		return status.MongoDBErr
+func UpdateUser(user User, CodeInfo GiftCodeInfo) (response.GeneralReward, *status.Response) {
+	Reward := response.GeneralReward{
+		Changes: make(map[uint32]uint64),
+		Balance: make(map[uint32]uint64),
+		Counter: make(map[uint32]uint64),
 	}
-	user.GoldCoins = CodeInfo.ContentList.GoldCoins
-	user.Diamonds = CodeInfo.ContentList.Diamonds
-	//以为用户输入字符串为用户名
+	if config.MongoCon == nil {
+		return Reward, status.MongoDBErr
+	}
+	//更新用户奖励数量，保存到Mongodb
+	//金币ID为1，钻石ID为2
+	Reward.Changes[1] = uint64(CodeInfo.ContentList.GoldCoins)
+	Reward.Changes[2] = uint64(CodeInfo.ContentList.Diamonds)
+	Reward.Balance[1] = uint64(user.GoldCoins + CodeInfo.ContentList.GoldCoins)
+	Reward.Balance[2] = uint64(user.Diamonds + CodeInfo.ContentList.Diamonds)
+	Reward.Counter[1] = uint64(user.GoldCoins + CodeInfo.ContentList.GoldCoins)
+	Reward.Counter[2] = uint64(user.Diamonds + CodeInfo.ContentList.Diamonds)
+	//以为用户输入字符串为用户唯一识别
+
+	err := config.Session.StartTransaction()
+	if err != nil {
+		return response.GeneralReward{}, nil
+	}
+	monCtx := mongo.NewSessionContext(context.TODO(), config.Session)
 	filter := bson.D{{"uid", user.UID}}
 	//更新用户,
 	update := bson.D{
 		{"$inc", bson.D{
-			{"goldcoins", user.GoldCoins},
-			{"diamonds", user.Diamonds},
+			{"goldcoins", CodeInfo.ContentList.GoldCoins},
+			{"diamonds", CodeInfo.ContentList.Diamonds},
 		}},
 	}
-	updateResult, err1 := utils.MongoCon.UpdateOne(context.TODO(), filter, update)
+	_, err1 := config.MongoCon.UpdateOne(monCtx, filter, update)
 	if err1 != nil {
-		return status.DBUpdateErr
+		config.Session.AbortTransaction(context.TODO())
+		return Reward, status.DBUpdateErr
 	}
-	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
-	return nil
+	config.Session.CommitTransaction(context.TODO())
+	return Reward, nil
 }
 
 //注册用户
 
 func InsertUser(user User) *status.Response {
 
-	insertResult, err := utils.MongoCon.InsertOne(context.TODO(), user)
+	insertResult, err := config.MongoCon.InsertOne(context.TODO(), user)
 	if err != nil {
 		return status.DBInsertErr
 	}

@@ -1,13 +1,13 @@
 package service
 
 import (
-	"MongoGift/internal/utils"
+	"MongoGift/internal/config"
 	"testing"
 )
 
 func TestUserLoginServer(t *testing.T) {
-	utils.InitClient()
-	utils.MongoClient()
+	config.InitClient()
+	config.MongoClient()
 	ContentInfo, err := UserLoginServer("tom")
 	t.Log(ContentInfo, err)
 }

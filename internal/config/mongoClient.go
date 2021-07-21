@@ -1,4 +1,4 @@
-package utils
+package config
 
 import (
 	"MongoGift/internal/status"
@@ -11,6 +11,7 @@ import (
 )
 
 var MongoCon *mongo.Collection
+var Session mongo.Session
 
 func MongoClient() *status.Response {
 	// 设置客户端连接配置
@@ -30,6 +31,11 @@ func MongoClient() *status.Response {
 		fmt.Println(status.MongoDBErr)
 		return status.MongoDBErr
 	}
+	Session, err = client.StartSession()
+	if err != nil {
+		return status.MongoDBErr
+	}
+
 	MongoCon = client.Database("gift").Collection("login")
 	fmt.Println("Connected to MongoDB!")
 	return nil

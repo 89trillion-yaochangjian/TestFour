@@ -73,8 +73,17 @@ func VerifyGiftCodeCtrl(c *gin.Context) {
 	}
 	info, err := service.VerifyFiftCodeService(code, Uid)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, status.CodeErr)
-		return
+		switch err.Error() {
+		case "礼包码无效":
+			c.JSON(http.StatusBadRequest, status.CodeErr)
+			return
+		case "指定用户领取":
+			c.JSON(http.StatusBadRequest, status.OrderUser)
+			return
+		case "您已领取，不要重复领取":
+			c.JSON(http.StatusBadRequest, status.GetCodeSecond)
+			return
+		}
 	}
 	Reward := response.GeneralReward{}
 	json.Unmarshal(info, &Reward)
